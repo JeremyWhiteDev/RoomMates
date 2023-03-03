@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Dapper;
+using System.Data;
 
 namespace RoomMates.Repositories;
 
@@ -135,4 +136,48 @@ WHERE rc.RoommateId IS NULL";
         }
     }
 
+
+    public List<ChoreCount> GetChoreCounts()
+    {
+        using (SqlConnection conn = Connection)
+        {
+            var sql = @"SELECT rm.Id, 
+                        rm.FirstName, 
+                        rm.LastName,
+                        rm.RentPortion,
+                        rm.MoveInDate,
+                        COUNT(rm.id) AS [Count]
+                        FROM Roommate rm
+                        LEFT JOIN RoommateChore rc
+                        ON rm.Id = rc.ChoreId
+                        GROUP BY rm.id, rm.FirstName, rm.LastName, rm.RentPortion, rm.MoveInDate";
+            conn.Open();
+
+            using (SqlCommand cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                SqlDataReader reader = cmd.ExecuteReader();
+                List<ChoreCount> choreCountList = new List<ChoreCount>();
+
+                while (reader.Read())
+                {
+                    ChoreCount choreCount = new ChoreCount
+                    {
+                        Count = reader.GetInt32(reader.GetOrdinal("Count")),
+                        Roommate = new Roommate {
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            RentPortion = reader.GetInt32(reader.GetOrdinal("RentPortion")),
+                            MovedInDate = reader.GetDateTime(reader.GetOrdinal("MoveInDate")),
+                        }
+                    };
+                    choreCountList.Add(choreCount);
+                }
+                reader.Close();
+              
+            return choreCountList;
+            }
+
+        }
+    }
 }
