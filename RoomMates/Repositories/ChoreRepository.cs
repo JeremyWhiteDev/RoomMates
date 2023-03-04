@@ -178,6 +178,40 @@ WHERE rc.RoommateId IS NULL";
             return choreCountList;
             }
 
+            
+
+        }
+    }
+
+    public void Update(Chore chore)
+    {
+        using (SqlConnection conn = Connection)
+        {
+            conn.Open ();
+            using (SqlCommand cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"UPDATE Chore
+                                    SET Name = @name
+                                    WHERE Id = @id";
+
+                cmd.Parameters.AddWithValue("@id", chore.Id);
+                cmd.Parameters.AddWithValue("@name", chore.Name);
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public void Delete(int id)
+    {
+        using (SqlConnection conn = Connection)
+        {
+            conn.Open();
+            using (SqlCommand cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM Room WHERE Id = @id";
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
         }
     }
 }
